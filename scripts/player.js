@@ -1,6 +1,5 @@
 /**
- * Player. Handles the audio flow, from note trigger/release , frequency resolution, wavetable, filter, envelope. Outputs audio.
- * @returns 
+ * Player. Handles the audio flow, from note trigger/release, frequency resolution, wavetable, filter, envelope. Outputs audio. 
  */
 const player = (function() {
     
@@ -9,12 +8,13 @@ const player = (function() {
 
     function init() {
         // Private attributes
-        const WAVE_ARRAY_LEN = 50;
+        const WAVE_ARRAY_LEN = 200;
         const START_OCTAVE = 4;
         const A_4_PITCH = 440;
 
         var audioContext = new (window.AudioContext || window.webkitAudioContext);
         var wave = new PeriodicWave(audioContext);
+        var wavetable = wavetable.getInstance();
 
         var scaleTable = initScaleTable();
 
@@ -36,6 +36,7 @@ const player = (function() {
 
             return result;
         }
+
         function noteToFrequency(note, octave) {
             var octaveDiff = octave - START_OCTAVE;
             var octaveAPitch = A_4_PITCH * Math.pow(2, octaveDiff);
@@ -45,21 +46,12 @@ const player = (function() {
         return {
             // Public attributes
             startNote: function(note) {
-
+                
             },
             stopNote: function(note) {
-
+                
             },
-            setTone: function(waveArray) {
-                // TODO: Normalize?
-                var real = waveArray;
-                var imag = new Array(WAVE_ARRAY_LEN).fill(0)
-                fft.forward(real, imag);
-
-                real = Float32Array(real)
-                imag = Float32Array(imag)
-                wave = audioContext.createPeriodicWave(real, imag)
-            }
+            wavetable: function() {return wavetable;}
         }
     }
 
