@@ -2,7 +2,7 @@
  * Wavetable. Uses a provided interpolation function to generate the full buffer of waves.
  * Memoizes the buffers produced, clearing memory whenever userWaves is updated.
  */
-const wavetable = (function() {
+const Wavetable = (function() {
     const SAMPLE_RATE = 44100;
 
     // Singleton instance
@@ -12,20 +12,20 @@ const wavetable = (function() {
         // Waves defined by the user, sorted by position.
         let userWaves = [];
         // Interpolation function, set to linear by default
-        let interpolationFunction = interpolation.linearInterpolation;
+        let interpolationFunction = Interpolation.linearInterpolation;
         // Memoized tuned waves
         let memoizedTunedWaves = new Map();
 
         // stretch/compress the actual wave with linterp/note sampling
-        function tunedWaveFromUserWave(userWave, noteFreq) {
+        function tunedWaveFromUserWave(wave, noteFreq) {
             let result = [];
             // calculate number of samples needed to describe the wave at the given frequency
             let numSamples = Math.floor(SAMPLE_RATE / noteFreq);
             // generate the wave
             for (let i = 0; i < numSamples; i += 1) {
-                let samplePos = i * userWave.length / numSamples;
+                let samplePos = i * wave.length / numSamples;
                 let interpPos = samplePos - Math.floor(samplePos);
-                let linterpSample = (1 - interpPos) * userWave[Math.floor(samplePos)] + interpPos * userWave[Math.ceil(samplePos)];
+                let linterpSample = (1 - interpPos) * wave[Math.floor(samplePos)] + interpPos * wave[Math.ceil(samplePos)];
                 result.push(linterpSample);
             }
             return result;
@@ -33,15 +33,17 @@ const wavetable = (function() {
 
         return {
             // Memoizes and returns a wave that is 1/lfoFreq secs long, with frequency noteFreq
-            buffer: function(lfoFreq, noteFreq) {
+            getBuffer: function(lfoFreq, noteFreq) {
                 if (memoizedTunedWaves.has(noteFreq)) {
                     return memoizedTunedWaves.get(noteFreq);
                 }
                 let result = []
-                let numSamples = SAMPLE_RATE * 1 / lfoFreq;
-                let tunedUserWaves = userWaves.map((wave) => tunedWaveFromUserWave(wave, noteFreq));
-                for (let i = 0; i < numSamples; i++) {
-                    result.push(...interpolationFunction(tunedUserWaves, i / numSamples));
+                let numWaves = SAMPLE_RATE / (lfoFreq * Math.floor(SAMPLE_RATE / noteFreq));
+                let tunedUserWaves = userWaves.map((userWave) => {
+                    return {wave: tunedWaveFromUserWave(userWave.wave, noteFreq), pos: userWave.pos};
+                });
+                for (let i = 0; i < numWaves; i++) {
+                    result.push(...interpolationFunction(tunedUserWaves, i / numWaves));
                 }
                 memoizedTunedWaves.set(noteFreq, result);
                 return result;

@@ -1,57 +1,72 @@
 /**
  * Player. Handles the audio flow, from note trigger/release, frequency resolution, wavetable, filter, envelope. Outputs audio. 
  */
-const player = (function() {
-    
+const Player = (function() {
     // Singleton instance
     var instance;
 
+    const SAMPLE_RATE = 44100;
+    const WAVE_ARRAY_LEN = 200;
+    const START_OCTAVE = 4;
+    const A_4_PITCH = 440;
+    const SCALE_TABLE = new Map([
+        ["a", 1],
+        ["a#", 1.0594630943592953],
+        ["b", 1.122462048309373],
+        ["c", 1.189207115002721],
+        ["c#", 1.2599210498948732],
+        ["d", 1.3348398541700344],
+        ["d#", 1.4142135623730951],
+        ["e", 1.4983070768766815],
+        ["f", 1.5874010519681994],
+        ["f#", 1.681792830507429],
+        ["g", 1.7817974362806785],
+        ["g#", 1.8877486253633868]
+    ]);
+
     function init() {
         // Private attributes
-        const WAVE_ARRAY_LEN = 200;
-        const START_OCTAVE = 4;
-        const A_4_PITCH = 440;
-
         var audioContext = new (window.AudioContext || window.webkitAudioContext);
-        var wave = new PeriodicWave(audioContext);
-        var wavetable = wavetable.getInstance();
-
-        var scaleTable = initScaleTable();
-
-        function initScaleTable() {
-            result = []
-
-            result["a"] = 1;
-            result["a#"] = 1.0594630943592953;
-            result["b"] = 1.122462048309373;
-            result["c"] = 1.189207115002721;
-            result["c#"] = 1.2599210498948732;
-            result["d"] = 1.3348398541700344;
-            result["d#"] = 1.4142135623730951;
-            result["e"] = 1.4983070768766815;
-            result["f"] = 1.5874010519681994;
-            result["f#"] = 1.681792830507429;
-            result["g"] = 1.7817974362806785;
-            result["g#"] = 1.8877486253633868;
-
-            return result;
-        }
+        var wavetable = Wavetable.getInstance();
+        var lfo = Lfo.get(1, -1, 1);
+        // {note, octave} => AudioBufferSourceNode
+        var activeNotes = new Map();
 
         function noteToFrequency(note, octave) {
             var octaveDiff = octave - START_OCTAVE;
             var octaveAPitch = A_4_PITCH * Math.pow(2, octaveDiff);
-            return octaveAPitch * scaleTable[note];
+            return octaveAPitch * SCALE_TABLE.get(note);
         }
 
         return {
             // Public attributes
-            startNote: function(note) {
-                
+            startNote: function(note, octave) {
+                if (activeNotes.has(note + octave)) {
+                    activeNotes.get(note + octave).stop();
+                    activeNotes.delete(note + octave);
+                }
+                const source = audioContext.createBufferSource();
+                const bufferArr = new Float32Array(wavetable.getBuffer(lfo.getFrequency(), noteToFrequency(note, octave)));
+                const buffer = audioContext.createBuffer(2, bufferArr.length, SAMPLE_RATE);
+                buffer.copyToChannel(bufferArr, 0);
+                buffer.copyToChannel(bufferArr, 1);
+
+                source.buffer = buffer;
+                source.connect(audioContext.destination);
+                activeNotes.set(note + octave, source);
+                console.log(activeNotes);
+                source.loop = true;
+                source.start();
             },
-            stopNote: function(note) {
-                
+            stopNote: function(note, octave) {
+                console.log(activeNotes);
+
+                if (activeNotes.has(note + octave)) {
+                    const source = activeNotes.get(note + octave);
+                    source.stop();
+                }
             },
-            wavetable: function() {return wavetable;}
+            wavetable: wavetable
         }
     }
 
@@ -65,35 +80,3 @@ const player = (function() {
       }
   }
 })();
-
-
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-// Create an empty three-second stereo buffer at the sample rate of the AudioContext
-const myArrayBuffer = audioCtx.createBuffer(
-    2,
-    audioCtx.sampleRate * 3,
-    audioCtx.sampleRate,
-);
-
-// Fill the buffer with white noise;
-// just random values between -1.0 and 1.0
-for (let channel = 0; channel < myArrayBuffer.numberOfChannels; channel++) {
-    // This gives us the actual ArrayBuffer that contains the data
-    const nowBuffering = myArrayBuffer.getChannelData(channel);
-    for (let i = 0; i < myArrayBuffer.length; i++) {
-        // Math.random() is in [0; 1.0]
-        // audio needs to be in [-1.0; 1.0]
-        nowBuffering[i] = Math.random() * 2 - 1;
-    }
-}
-
-// Get an AudioBufferSourceNode.
-// This is the AudioNode to use when we want to play an AudioBuffer
-const source = audioCtx.createBufferSource();
-// set the buffer in the AudioBufferSourceNode
-source.buffer = myArrayBuffer;
-// connect the AudioBufferSourceNode to the
-// destination so we can hear the sound
-source.connect(audioCtx.destination);
-// start the source playing
