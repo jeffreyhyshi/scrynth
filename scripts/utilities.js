@@ -24,5 +24,33 @@ const Utilities = {
             result.push(arr1[j] * (1 - pos) + arr2[j] * pos);
         }
         return result
+    },
+    // given a sorted array of object with property .pos in [0,1], and lfoPosition,
+    // calculates the relative [0,1] position that lfoPosition occupies between two objects.
+    // returns an object {prev: <obj>, next: <obj>, pos: <relative position>}
+    normalizedPosition: function(objectsWithPos, lfoPosition) {
+        if (!objectsWithPos || !objectsWithPos.length > 0) {
+            return 0;
+        }
+
+        for (let i = 0; i < objectsWithPos.length; i += 1) {
+            let posObject = objectsWithPos[i];
+            if (posObject.pos > lfoPosition) {
+                let prevPosObject = i > 0 ? objectsWithPos[i - 1] : objectsWithPos[objectsWithPos.length - 1];
+                // normalize position between waves to [0,1]
+                let posBetweenObjects;
+                if (prevPosObject.pos > posObject.pos) {
+                    posBetweenObjects = (1 - prevPosObject.pos + lfoPosition) / (1 - prevPosObject.pos + posObject.pos)
+                } else {
+                    posBetweenObjects = (lfoPosition - prevPosObject.pos) / (posObject.pos - prevPosObject.pos)
+                }
+                return {prev: prevPosObject.wave, next: posObject.wave, pos: posBetweenObjects};
+            }
+        }
+        // lfo position is greater than any user wave
+        let prevPosObject = objectsWithPos[objectsWithPos.length - 1];
+        let posObject = objectsWithPos[0];
+        let posBetweenObjects = (lfoPosition - prevPosObject.pos) / (1 - prevPosObject.pos + posObject.pos);
+        return {prev: prevPosObject.wave, next: posObject.wave, pos: posBetweenObjects};
     }
 }

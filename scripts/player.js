@@ -31,6 +31,7 @@ const Player = (function() {
         var lfo = Lfo.get(1, -1, 1);
         // {note, octave} => AudioBufferSourceNode
         var activeNotes = new Map();
+        var filtertable = Filtertable.getInstance(audioContext);
 
         function noteToFrequency(note, octave) {
             var octaveDiff = octave - START_OCTAVE;
@@ -46,12 +47,14 @@ const Player = (function() {
                     activeNotes.delete(note + octave);
                 }
                 const source = audioContext.createBufferSource();
+                //const filter = filtertable.getFilter(lfo.getFrequency());
                 const bufferArr = new Float32Array(wavetable.getBuffer(lfo.getFrequency(), noteToFrequency(note, octave)));
                 const buffer = audioContext.createBuffer(2, bufferArr.length, SAMPLE_RATE);
                 buffer.copyToChannel(bufferArr, 0);
                 buffer.copyToChannel(bufferArr, 1);
 
                 source.buffer = buffer;
+                // source.connect(filter);
                 source.connect(audioContext.destination);
                 activeNotes.set(note + octave, source);
                 console.log(activeNotes);
@@ -66,7 +69,8 @@ const Player = (function() {
                     source.stop();
                 }
             },
-            wavetable: wavetable
+            wavetable: wavetable,
+            filtertable: filtertable
         }
     }
 

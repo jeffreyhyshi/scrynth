@@ -10,6 +10,7 @@ const Wavetable = (function() {
 
     function init() {
         // Waves defined by the user, sorted by position.
+        // {pos: <position>, wave: <wave>}
         let userWaves = [];
         // Interpolation function, set to linear by default
         let interpolationFunction = Interpolation.linearInterpolation;
@@ -45,6 +46,7 @@ const Wavetable = (function() {
                 for (let i = 0; i < numWaves; i++) {
                     result.push(...interpolationFunction(tunedUserWaves, i / numWaves));
                 }
+                console.log(result);
                 memoizedTunedWaves.set(noteFreq, result);
                 return result;
             },

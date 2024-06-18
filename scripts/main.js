@@ -21,26 +21,56 @@
 // }
 
 // animate();
+
+import { fabric } from 'fabric';
+var canvas = new fabric.Canvas('c');
+var rect = new fabric.Rect({
+    left:100, top:100, fill: 'red', width:20, height:20
+})
+rect.hasBorders = false;
+rect.hasControls = false;
+rect.lockMovementY = true;
+
+canvas.add(rect);
+
+rect.on('mouseover', function(options) {
+    console.log('mouseover');
+    rect.set('fill', 'green');
+    canvas.renderAll();
+});
+
+rect.on('mouseout', function(options) {
+    console.log('mouseover');
+    rect.set('fill', 'red');
+    canvas.renderAll();
+});
+
+
+
 const startButton = document.querySelector("#start");
 const stopButton = document.querySelector("#stop");
 
 
-var userwaves = [{wave: Utilities.sineWave(100), pos: 0.0}, {wave: Utilities.squareWave(100), pos: 0.5}];
-var wavetable = Wavetable.getInstance();
-wavetable.addUserWave(userwaves[0]);
-wavetable.addUserWave(userwaves[1]);
-wavetable.getBuffer(1, 440);
+// var userwaves = [{wave: Utilities.sineWave(100), pos: 0.0}, {wave: Utilities.squareWave(100), pos: 0.5}];
+// var wavetable = Wavetable.getInstance();
+// wavetable.addUserWave(userwaves[0]);
+// wavetable.addUserWave(userwaves[1]);
+// wavetable.getBuffer(1, 440);
 
 const player = Player.getInstance();
 
 startButton.onclick = () => {
     console.log("start");
-    player.wavetable.addUserWave({wave: Utilities.sineWave(100), pos: 0.0});
-    player.wavetable.addUserWave({wave: Utilities.squareWave(100), pos: 0.5});
-    player.startNote("a", 4);
+    player.wavetable.addUserWave({wave: Utilities.squareWave(500), pos: 0.5})
+    player.wavetable.addUserWave({wave: Utilities.sineWave(500), pos: 0.75});
+    player.wavetable.addUserWave({wave: Utilities.sineWave(500), pos: 0.0});
+    player.wavetable.addUserWave({wave: Utilities.sineWave(500), pos: 0.3});
+    
+
+    player.startNote("c", 3);
 };
 
 stopButton.onclick = () => {
     console.log("stop");
-    player.stopNote("a", 4);
+    player.stopNote("c", 3);
 };
