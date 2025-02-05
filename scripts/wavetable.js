@@ -70,7 +70,7 @@ const Wavetable = (function() {
                         break;
                     }
                 }
-                userWaves.split(removeIndex, 1);
+                userWaves.splice(removeIndex, 1);
                 memoizedTunedWaves.clear();
             }
         }

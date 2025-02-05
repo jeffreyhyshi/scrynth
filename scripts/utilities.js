@@ -6,18 +6,29 @@ const Utilities = {
     squareWave: function(len) {
         let result = [];
         for (let i = 0; i < len; i += 1) {
-            result.push(i / len > 0.5 ? 1 : -1);
+            result.push(i / len > 0.5 ? -1 : 1);
         }
         return result;
     },
     // produces an array with a single cycle [-1, 1] sine wave over len
-    sineWave: function(len) {
+    sineWave: function(len, cyclesOpt, phaseShiftOpt) {
         let result = [];
+        let numCycles = cyclesOpt ? cyclesOpt : 1
+        let phaseShift = phaseShiftOpt ? phaseShiftOpt : 0;
         for (let i = 0; i < len; i += 1) {
-            result.push(Math.sin(2 * Math.PI * i / len));
+            result.push(Math.sin(numCycles * (2 * Math.PI * i / len + phaseShift)));
         }
         return result;
     },
+    // produces an array with a single cycle [-1, 1] sawtooth over len
+    sawtoothWave: function(len) {
+        let result = [];
+        for (let i = 0; i < len; i += 1) {
+            result.push((2 - 2 * i / len) - 1);
+        }
+        return result;
+    },
+    // produces an array with length min(arr1.length, arr2.length), linearly interpolating values from the two arrays at position pos
     linterp: function(arr1, arr2, pos) {
         let result = [];
         for (let j = 0; j < arr1.length && j < arr2.length; j += 1) {

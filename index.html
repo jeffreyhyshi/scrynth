@@ -17,7 +17,19 @@
 		<script type="module" src="scripts/main.js"></script>
 
 		<h1>Web Audio API: AudioBuffer</h1>
-		<canvas id="c" width="300" height="300"></canvas>
+		<button id="wave0">Select wave 0</button>
+		<button id="wave1">Select wave 1</button>
+		<br>
+		<label for="cycles">Num cycles</label>
+		<input type="number" id="cycles" name="cycles">
+		<label for="phase">Phase shift</label>
+		<input type="number" id="phase" name="phase">
+		<br>
+		<button id="sine">Load sine</button>
+		<button id="square">Load square</button>
+		<button id="sawtooth">Load sawtooth</button>
+
+		<canvas id="c" width="500" height="510"></canvas>
 
     	<button id="start">Make sound go brr</button>
 		<button id="stop">Make sound stop</button>
